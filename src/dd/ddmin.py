@@ -1,15 +1,16 @@
 from typing import Callable
 
 
-def complement_sweep(target:str, i_partition:int, oracle:Callable):
+def complement_sweep(target:str, partlen:int, oracle:Callable) -> str:
 	"""Identify benign chunks of target with variable granularity."""
 
 	reduced = ""
 	
-	for i in range(0, len(target), i_partition):
-		stitched = reduced + target[i+i_partition:]
+	for i in range(0, len(target), partlen):
+		removed   = target[i:i+partlen]
+		remaining = target[i+partlen:]
 		
-		if not oracle(stitched): reduced += target[i:i+i_partition]
+		if not oracle(reduced + remaining): reduced += removed
 	
 	return reduced
 
@@ -17,12 +18,12 @@ def complement_sweep(target:str, i_partition:int, oracle:Callable):
 def ddmin(target:str, oracle:Callable) -> str:
 	"""Classical Delta-Debugging algorithm."""
 
-	i_partition = len(target) // 2
+	partlen = len(target) // 2
 	
-	while i_partition and target:
-		reduced = complement_sweep(target, i_partition, oracle)
+	while partlen and target:
+		reduced = complement_sweep(target, partlen, oracle)
 		
-		if reduced == target: i_partition //= 2		
+		if reduced == target: partlen //= 2		
 		target = reduced
 	
 	return target
