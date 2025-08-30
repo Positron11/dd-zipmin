@@ -7,7 +7,7 @@ def complement_sweep(target:str, i_partition:int, oracle:Callable):
 	reduced = ""
 	
 	for i in range(0, len(target), i_partition):
-		stitched =  reduced + target[i+i_partition:]
+		stitched = reduced + target[i+i_partition:]
 		
 		if not oracle(stitched): reduced += target[i:i+i_partition]
 	
