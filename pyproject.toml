@@ -1,0 +1,23 @@
+[build-system]
+requires = [
+	"setuptools>=64",
+	"wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tailprobe-dd"
+version = "0.1.0"
+description = "Tail-probe Delta Debugging utilities"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+	{ name = "Aarush Kumbhakern" },
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
