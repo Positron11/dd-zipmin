@@ -1,5 +1,3 @@
-import sys
-from pathlib import Path
 import unittest
 
 from dd.ddmin import ddmin
@@ -23,27 +21,86 @@ class TestSanity(unittest.TestCase):
 	# ---
 
 	def test_reduces_to_single_required_char(self):
-		self._tt_basic_minimization("aaaaabaaaa", lambda s: "b" in s, "b")
+		self._tt_basic_minimization(
+			target="aaaaabaaaa", 
+			oracle=lambda s: "b" in s, 
+			expected="b"
+		)
 
 
 	def test_reduces_to_required_substring(self):
-		self._tt_basic_minimization("zzzabczzz", lambda s: "abc" in s, "abc")
+		self._tt_basic_minimization(
+			target="zzzabczzz", 
+			oracle=lambda s: "abc" in s, 
+			expected="abc"
+		)
 
 
-	def test_oracle_always_true_minimizes_to_empty(self):
-		self._tt_basic_minimization("abcdef", lambda s: True, "")
+	def test_always_true_minimizes_to_empty(self):
+		self._tt_basic_minimization(
+			target="abcdef", 
+			oracle=lambda s: True, 
+			expected=""
+		)
 
 
-	def test_oracle_never_true_keeps_original(self):
-		self._tt_basic_minimization("abcdef", lambda s: False, "abcdef")
+	def test_always_false_keeps_original(self):
+		self._tt_basic_minimization(
+			target="abcdef", 
+			oracle=lambda s: False, 
+			expected="abcdef"
+		)
 
 
 	def test_unicode_handling(self):
-		self._tt_basic_minimization("αβγdéfβγ", lambda s: "dé" in s, "dé")
+		self._tt_basic_minimization(
+			target="αβγdéfβγ", 
+			oracle=lambda s: "dé" in s, 
+			expected="dé"
+		)
+
+
+	def test_large_noise_minimizes_to_pattern(self):
+		self._tt_basic_minimization(
+			target=("x" * 300) + "needle" + ("x" * 400), 
+			oracle=lambda s: "needle" in s, 
+			expected="needle"
+		)
+
+
+	def test_odd_length_partitions(self):
+		self._tt_basic_minimization(
+			target=("a" * 17) + "Z" + ("a" * 13), 
+			oracle=lambda s: "Z" in s, 
+			expected="Z"
+		)
+
+
+	def test_two_required_occurrences(self):
+		self._tt_basic_minimization(
+			target="bbbbbaaaabbbb", 
+			oracle=lambda s: s.count("a") >= 2, 
+			expected="aa"
+		)
+
+
+	def test_newline_sequence_required(self):
+		self._tt_basic_minimization(
+			target="line1\nline2\n\nline4\n", 
+			oracle=lambda s: "\n\n" in s, 
+			expected="\n\n"
+		)
+
+
+	def test_requires_prefix_and_suffix(self):
+		self._tt_basic_minimization(
+			target="Axxx--middle--yyyZ", 
+			oracle=lambda s: s.startswith("A") and s.endswith("Z"), 
+			expected="AZ")
 
 	# ---
 
-	def test_non_contiguous_requirements(self):
+	def test_non_contiguous_requirements_minimal(self):
 		target = "zzazbzczz"
 
 		def oracle(s: str) -> bool:
@@ -56,7 +113,7 @@ class TestSanity(unittest.TestCase):
 				self.assertTrue(oracle(result))
 
 				# minimality check: removing any single char should break the property
-				self.assertTrue(result)  # result not empty
+				self.assertTrue(result)
 
 				for i in range(len(result)):
 					self.assertFalse(oracle(result[:i] + result[i + 1 :]))
