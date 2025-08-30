@@ -1,10 +1,12 @@
 import unittest
 
-from dd.ddmin import ddmin
+from dd.ddmin import minimize as ddmin
+from dd.zipmin import minimize as zipmin
 
 
 VARIANTS = {
 	"ddmin": ddmin,
+	"zipmin": zipmin
 }
 
 

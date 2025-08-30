@@ -15,7 +15,7 @@ def complement_sweep(target:str, partlen:int, oracle:Callable) -> str:
 	return reduced
 
 
-def ddmin(target:str, oracle:Callable) -> str:
+def minimize(target:str, oracle:Callable) -> str:
 	"""Classical Delta-Debugging algorithm."""
 
 	partlen = len(target) // 2
