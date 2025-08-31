@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
+from dd.ddmin import minimize
+
+
+def build_oracle(base:Path, input_name:str, script_name:str, timeout:float|None):
+	xml_path    = base / input_name
+	script_path = base / script_name
+	
+	last_written:dict[str, str] = {"content": None}
+
+	def oracle(candidate:str) -> bool:
+		# avoid redundant writes
+		if candidate != last_written["content"]:
+			tmp_path = xml_path.with_suffix(xml_path.suffix + ".tmp")
+			
+			tmp_path.write_text(candidate, encoding="utf-8", errors="ignore")
+			tmp_path.replace(xml_path)
+			
+			last_written["content"] = candidate
+		
+		try:
+			proc = subprocess.run(
+				["bash", script_path.name],
+				cwd=str(base),
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE,
+				timeout=timeout,
+				check=False,
+			)
+		
+		# false if timeout or uninteresting (retcode=1)
+		except subprocess.TimeoutExpired: return False
+		return proc.returncode == 0
+
+	return oracle
+
+
+def main():
+	p = argparse.ArgumentParser(description=__doc__)
+	
+	p.add_argument(
+		"predicate_dir",
+		type=Path,
+		help="Path to xmlprocessor predicate directory (contains r.sh and input.xml)",
+	)
+	
+	p.add_argument(
+		"--input",
+		default="input.xml",
+		help="Input filename within the predicate directory (default: input.xml)",
+	)
+	
+	p.add_argument(
+		"--script",
+		default="r.sh",
+		help="Predicate runner script within the directory (default: r.sh)",
+	)
+	
+	p.add_argument(
+		"--timeout",
+		type=float,
+		default=60.0,
+		help="Per-oracle timeout in seconds (default: 60)",
+	)
+
+	
+	p.add_argument(
+		"--in-place",
+		action="store_true",
+		help="Overwrite the input file with the minimized result (default: write to input.min.xml)",
+	)
+	
+	p.add_argument(
+		"--output",
+		default="input.min.xml",
+		help="Output filename for minimized result (default: input.min.xml)",
+	)
+	
+	args = p.parse_args()
+
+	# construct paths
+	base     = args.predicate_dir.resolve()
+	xml_path = base / args.input
+
+	# not-found errors
+	if not xml_path.exists(): p.error(f"Input file not found: {xml_path}")
+	if not (base / args.script).exists(): p.error(f"Oracle script not found: {base / args.script}")
+
+	original = xml_path.read_text(encoding="utf-8", errors="ignore")
+	oracle   = build_oracle(base, args.input, args.script, args.timeout)
+
+	minimized = minimize(original, oracle)
+
+	if args.in_place:
+		xml_path.write_text(minimized, encoding="utf-8")
+		out_path = xml_path
+	
+	else:
+		out_path = base / args.output
+		out_path.write_text(minimized, encoding="utf-8")
+		
+		# restore original input.xml content
+		xml_path.write_text(original, encoding="utf-8")
+
+	# success log
+	print(f"Minimized length: {len(minimized)}")
+	print(f"Wrote: {out_path}")
+	
+
+if __name__ == "__main__":
+	main()
