@@ -1,6 +1,6 @@
-# Delta Debugging (DD) Improvements
+# ZipMin Delta Debugger (DD) Benchmarking
 
-Repository containing work on improved Delta Debugging algorithms (ZipMin) and pipelines.
+Repository containing benchamrking tools for improved Delta Debugging algorithms (ZipMin) and pipelines.
 
 ## Setup (Editable Install)
 
