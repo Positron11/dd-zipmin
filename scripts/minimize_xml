@@ -163,6 +163,8 @@ def main(verbose=False):
 	
 	except Exception as e: p.error(f"Failed to import minimize from module '{args.module}': {e}")
 
+	minimized = None
+
 	try:
 		minimized, n_oracle_calls = minimize(
 			target =original, 
@@ -172,22 +174,16 @@ def main(verbose=False):
 		)
 
 		# update input.xml in-place
-		if args.in_place:
-			xml_path.write_text(minimized, encoding="utf-8")
-			out_path = xml_path
-
+		if args.in_place: out_path = xml_path
+			
 		else:
 			out_path = base_path / args.output
 			
 			# prevent accidental overwrite when not using --in-place
 			if out_path.resolve() == xml_path.resolve():
 				p.error("--output cannot equal input file; use --in-place to overwrite")
-			
-			# write minimized xml to separate out path
-			out_path.write_text(minimized, encoding="utf-8")
-			
-			# restore original input.xml content
-			xml_path.write_text(original, encoding="utf-8")
+
+		out_path.write_text(minimized, encoding="utf-8")
 
 		# success log
 		if verbose:
@@ -200,8 +196,11 @@ def main(verbose=False):
 		print("\nInterrupted by user. Cleaning up...", file=sys.stderr)
 		sys.exit(130)
 
-	# cleanup RAM-disk copy if used
 	finally:
+		# restore original input.xml content
+		if not (minimized and args.in_place): xml_path.write_text(original, encoding="utf-8")
+
+		# cleanup RAM-disk copy if used
 		if tmp_parent is not None:
 			try: shutil.rmtree(tmp_parent)
 			except Exception as e:
