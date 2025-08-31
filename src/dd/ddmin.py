@@ -7,6 +7,7 @@ def complement_sweep(target:str, partlen:int, oracle:Callable) -> str:
 
 	reduced = ""
 	
+	# test contiguous chunks of size partlen for interestingness
 	for i in range(0, len(target), partlen):
 		removed   = target[i:i+partlen]
 		remaining = target[i+partlen:]
@@ -27,6 +28,7 @@ def minimize(target:str, oracle:Callable, verbose:bool=False) -> str:
 		reduced = complement_sweep(target, partlen, oracle)
 		
 		if reduced == target: partlen //= 2		
+		
 		target = reduced
 	
 	return target

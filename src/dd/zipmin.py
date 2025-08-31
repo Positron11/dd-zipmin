@@ -14,17 +14,19 @@ def complement_sweep(pre:str, target:str, post:str, partlen:int, oracle:Callable
 	
 	reduced = ""
 	
-	failure_count = 0
+	# counter for failing oracle calls
+	n_failures = 0
 	
+	# test contiguous chunks of size partlen for interestingness
 	for i in range(0, len(target), partlen):
 		removed   = target[i:i+partlen]
 		remaining = target[i+partlen:]
 		
 		if not oracle(pre + reduced + remaining + post): reduced += removed
+		else: n_failures += 1
 	
-		else: failure_count += 1
-	
-	deficit = max(failure_count - (len(target) - len(reduced)), 0)
+	# TODO: clarify and fix deficit logic
+	deficit = max(n_failures - (len(target) - len(reduced)), 0)
 	
 	return reduced, deficit
 
@@ -35,8 +37,8 @@ def minimize(target:str, oracle:Callable, verbose:bool=False) -> str:
 	partlen = len(target) // 2
 	
 	# counters
-	count   = 0
-	deficit = 0
+	c_iteralt = 0
+	deficit   = 0
 	
 	# pre and post-ludes
 	pre  = ""
@@ -46,8 +48,9 @@ def minimize(target:str, oracle:Callable, verbose:bool=False) -> str:
 	while partlen and target:
 		if verbose: print(f"[{datetime.now().strftime("%H:%M:%S")}]  {len(target):.2E}  {partlen}")
 
-		if count % 2: 
+		if c_iteralt % 2: 
 			for i in range(deficit):
+				# TODO: clarify and fix target/reduced assignment logic
 				pre, reduced, post = remove_last_char(pre, target, post, oracle)
 			  
 			deficit = 0
@@ -58,6 +61,6 @@ def minimize(target:str, oracle:Callable, verbose:bool=False) -> str:
 			if reduced == target: partlen //= 2
 		
 		target = reduced
-		count += 1
+		c_iteralt += 1
 	
 	return pre + target + post
