@@ -130,10 +130,10 @@ def main(verbose=False):
 	if not xml_path.exists(): p.error(f"Input file not found: {xml_path}")
 	if not (base_path / args.script).exists(): p.error(f"Oracle script not found: {base_path / args.script}")
 
-	# optimization: run from a RAM-disk copy under /dev/shm
-	ram_base   = base_path
+	run_base   = base_path
 	tmp_parent = None
 	
+	# optimization: run from a RAM-disk copy under /dev/shm
 	if args.ramdisk:
 		ram_root = Path(args.ram_root)
 	
@@ -143,18 +143,18 @@ def main(verbose=False):
 	
 		else:
 			tmp_parent = tempfile.mkdtemp(prefix="ddmin-", dir=str(ram_root))
-			ram_base   = Path(tmp_parent) / base_path.name
+			run_base   = Path(tmp_parent) / base_path.name
 			lib_path   = base_path.parent / "lib"
 			ram_lib    = Path(tmp_parent) / "lib"
 			
 			# copy predicate and lib dirs to RAM-disk
-			shutil.copytree(base_path, ram_base)
+			shutil.copytree(base_path, run_base)
 			shutil.copytree(lib_path, ram_lib)
 
 	# read input.xml to string
 	original = xml_path.read_text(encoding="utf-8")
 	
-	oracle = build_oracle(ram_base, args.input, args.script, args.timeout)
+	oracle = build_oracle(run_base, args.input, args.script, args.timeout)
 
 	try:
 		# dynamically import the minimizer module and fetch its minimize()
