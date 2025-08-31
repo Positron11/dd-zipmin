@@ -1,4 +1,5 @@
 from typing import Callable
+from math import ceil
 from datetime import datetime
 
 
@@ -31,14 +32,15 @@ def complement_sweep(pre:str, target:str, post:str, partlen:int, oracle:Callable
 	return reduced, deficit
 
 
-def minimize(target:str, oracle:Callable, verbose:bool=False) -> str:
+def minimize(target:str, oracle:Callable, stats:bool=False, verbose:bool=False) -> tuple[str, int]|str:
 	"""ZipMin Delta-Debugging aglorithm."""
 
 	partlen = len(target) // 2
 	
 	# counters
-	c_iteralt = 0
-	deficit   = 0
+	c_iteralt  = 0
+	deficit    = 0
+	n_oracalls = 0
 	
 	# pre and post-ludes
 	pre  = ""
@@ -52,15 +54,19 @@ def minimize(target:str, oracle:Callable, verbose:bool=False) -> str:
 			for i in range(deficit):
 				# TODO: clarify and fix target/reduced assignment logic
 				pre, reduced, post = remove_last_char(pre, target, post, oracle)
+				
+			if stats: n_oracalls += deficit
 			  
 			deficit = 0
 		
 		else:
 			reduced, deficit = complement_sweep(pre, target, post, partlen, oracle)
+			if stats: n_oracalls += ceil(len(target) / partlen)
 	
 			if reduced == target: partlen //= 2
 		
 		target = reduced
+		
 		c_iteralt += 1
 	
-	return pre + target + post
+	return (pre + target + post, n_oracalls) if stats else pre + target + post

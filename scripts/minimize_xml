@@ -164,9 +164,10 @@ def main(verbose=False):
 	except Exception as e: p.error(f"Failed to import minimize from module '{args.module}': {e}")
 
 	try:
-		minimized = minimize(
+		minimized, n_oracle_calls = minimize(
 			target =original, 
 			oracle =oracle,
+			stats  =True,
 			verbose=verbose
 		)
 
@@ -190,6 +191,7 @@ def main(verbose=False):
 
 		# success log
 		print(f"Minimized length: {len(minimized)}")
+		print(f"Oracle invocations: {n_oracle_calls}")
 		print(f"Wrote: {out_path}")
 
 	# handle keyboard interrupts
