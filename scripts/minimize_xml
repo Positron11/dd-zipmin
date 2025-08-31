@@ -190,9 +190,10 @@ def main(verbose=False):
 			xml_path.write_text(original, encoding="utf-8")
 
 		# success log
-		print(f"Minimized length: {len(minimized)}")
-		print(f"Oracle invocations: {n_oracle_calls}")
-		print(f"Wrote: {out_path}")
+		if verbose:
+			print(f"\nMinimized length: {len(minimized)}")
+			print(f"Oracle invocations: {n_oracle_calls}")
+			print(f"Wrote: {out_path}")
 
 	# handle keyboard interrupts
 	except KeyboardInterrupt:
