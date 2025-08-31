@@ -1,14 +1,15 @@
+from typing import Callable
 from datetime import datetime
 
 
-def remove_last_char(pre, target, post, oracle):
+def remove_last_char(pre:str, target:str, post:str, oracle:Callable) -> tuple[str, str, str]:
 	"""Add last char to postlude if needed."""
 
 	if oracle(pre + target[:-1] + post): return pre, target[:-1], post
 	else: return pre, target[:-1], target[-1] + post
 
 
-def complement_sweep(pre, target, post, partlen, oracle):
+def complement_sweep(pre:str, target:str, post:str, partlen:int, oracle:Callable) -> tuple[str, int]:
 	"""Identify benign chunks of target with variable granularity."""
 	
 	reduced = ""
@@ -28,7 +29,7 @@ def complement_sweep(pre, target, post, partlen, oracle):
 	return reduced, deficit
 
 
-def minimize(target, oracle, verbose:bool=False):
+def minimize(target:str, oracle:Callable, verbose:bool=False) -> str:
 	"""ZipMin Delta-Debugging aglorithm."""
 
 	partlen = len(target) // 2
