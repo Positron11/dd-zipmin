@@ -62,7 +62,7 @@ def build_oracle(base:Path, input_name:str, script_name:str, timeout:float|None)
 	return oracle
 
 
-def main():
+def main(verbose=False):
 	p = argparse.ArgumentParser(description=__doc__)
 	
 	p.add_argument(
@@ -164,7 +164,11 @@ def main():
 	except Exception as e: p.error(f"Failed to import minimize from module '{args.module}': {e}")
 
 	try:
-		minimized = minimize(original, oracle)
+		minimized = minimize(
+			target =original, 
+			oracle =oracle,
+			verbose=verbose
+		)
 
 		# update input.xml in-place
 		if args.in_place:
@@ -202,4 +206,4 @@ def main():
 	
 
 if __name__ == "__main__":
-	main()
+	main(verbose=True)

@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 def remove_last_char(pre, target, post, oracle):
 	"""Add last char to postlude if needed."""
 
@@ -25,7 +28,7 @@ def complement_sweep(pre, target, post, partlen, oracle):
 	return reduced, deficit
 
 
-def minimize(target, oracle):
+def minimize(target, oracle, verbose:bool=False):
 	"""ZipMin Delta-Debugging aglorithm."""
 
 	partlen = len(target) // 2
@@ -40,6 +43,8 @@ def minimize(target, oracle):
 	
 	# alternate between deficit-guided last char trimming and complement sweep
 	while partlen and target:
+		if verbose: print(f"[{datetime.now().strftime("%H:%M:%S")}]  {len(target):.2E}  {partlen}")
+
 		if count % 2: 
 			for i in range(deficit):
 				pre, reduced, post = remove_last_char(pre, target, post, oracle)

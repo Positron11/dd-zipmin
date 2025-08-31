@@ -1,4 +1,5 @@
 from typing import Callable
+from datetime import datetime
 
 
 def complement_sweep(target:str, partlen:int, oracle:Callable) -> str:
@@ -15,12 +16,14 @@ def complement_sweep(target:str, partlen:int, oracle:Callable) -> str:
 	return reduced
 
 
-def minimize(target:str, oracle:Callable) -> str:
+def minimize(target:str, oracle:Callable, verbose:bool=False) -> str:
 	"""Classical Delta-Debugging algorithm."""
 
 	partlen = len(target) // 2
 	
 	while partlen and target:
+		if verbose: print(f"[{datetime.now().strftime("%H:%M:%S")}]  {len(target):.2E}  {partlen}")
+
 		reduced = complement_sweep(target, partlen, oracle)
 		
 		if reduced == target: partlen //= 2		
