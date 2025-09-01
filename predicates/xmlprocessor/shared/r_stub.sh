@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 print_usage() {
-  printf >&2 "Usage: [--good-port PORT] [-h|--help]
+  printf >&2 "Usage: $(basename $0) [--good-port PORT] [-h|--help]
 
 Options:
   --good-port PORT   Port to start on (default: 1984)
