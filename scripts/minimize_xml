@@ -105,12 +105,6 @@ def main(verbose=False):
 		"--ram-root",
 		default="/dev/shm",
 		help="Root directory of tmpfs to use with --ramdisk (default: /dev/shm)",
-		)
-	
-	p.add_argument(
-		"--in-place",
-		action="store_true",
-		help="Overwrite the input file with the minimized result (default: write to input.min.xml)",
 	)
 	
 	p.add_argument(
@@ -172,16 +166,7 @@ def main(verbose=False):
 			verbose=verbose
 		)
 
-		# update input.xml in-place
-		if args.in_place: out_path = xml_path
-			
-		else:
-			out_path = base_path / args.output
-			
-			# prevent accidental overwrite when not using --in-place
-			if out_path.resolve() == xml_path.resolve():
-				p.error("--output cannot equal input file; use --in-place to overwrite")
-
+		out_path = base_path / args.output
 		out_path.write_text(minimized, encoding="utf-8")
 
 		# success log
@@ -192,18 +177,25 @@ def main(verbose=False):
 
 	# handle keyboard interrupts
 	except KeyboardInterrupt:
-		print("\nInterrupted by user. Cleaning up...", file=sys.stderr)
+		print("\n\nInterrupted by user (130)", file=sys.stderr)
 		sys.exit(130)
 
 	finally:
+		print("\nCleaning up...")
+		
 		# restore original input.xml content
-		if not (minimized and args.in_place): xml_path.write_text(original, encoding="utf-8")
+		if not args.ramdisk: 
+			print(f" - Restoring original input ({xml_path})...")
+			xml_path.write_text(original, encoding="utf-8")
 
 		# cleanup RAM-disk copy if used
 		if tmp_parent is not None:
+			print(f" - Clearing RAM disk ({tmp_parent})...")
+			
 			try: shutil.rmtree(tmp_parent)
-			except Exception as e:
-				print(f"Warning: failed to clean ramdisk dir {tmp_parent}: {e}", file=sys.stderr)
+			except Exception as e: print(f"Warning: failed to clean ramdisk dir: {e}", file=sys.stderr)
+
+		print(" - Done.")
 	
 
 if __name__ == "__main__":
