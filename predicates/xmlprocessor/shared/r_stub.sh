@@ -23,19 +23,14 @@ while [[ $# -gt 0 ]]; do
 	  		else
 				echo "Error: --good-port requires a numeric argument" >&2
 				exit 2
-	  		fi
-		;;
+	  		fi ;;
 	
-	-h|--help)
-		print_usage
-		exit 0
-		;;
-	
-	*)
-		echo "Unknown option: $1" >&2
-		print_usage
-		exit 2
-		;;
+		-h|--help) print_usage ; exit 0 ;;
+		
+		*)
+			echo "Unknown option: $1" >&2
+			print_usage
+			exit 2 ;;
 	esac
 done
 

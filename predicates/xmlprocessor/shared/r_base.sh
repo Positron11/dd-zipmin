@@ -3,9 +3,6 @@
 SCRIPT_DIR=$1
 LIB_DIR="${SCRIPT_DIR}/../lib"
 
-GOOD_VERSION="f053486"
-BAD_VERSION="16af2b1"
-
 HOST=127.0.0.1
 BASEX_GOOD_PORT=$2
 BASEX_BAD_PORT=$((BASEX_GOOD_PORT + 1))
@@ -36,6 +33,9 @@ if [ $ret != 0 ]; then
 	if ! check_listening "$HOST" "$BASEX_BAD_PORT"; then
 		echo "Error: BaseX bad server not reachable on $HOST:$BASEX_BAD_PORT" >&2
 		exit 3
+	elif [[ ! -f "${LIB_DIR}/basex-${BAD_VERSION}.jar" ]]; then
+		echo "Error: BaseX .jar file not found: ${LIB_DIR}/basex-${BAD_VERSION}.jar" >&2
+		exit 4
 	fi
 
 	exit 1
@@ -50,6 +50,9 @@ if [ $ret != 0 ]; then
 	if ! check_listening "$HOST" "$BASEX_GOOD_PORT"; then
 		echo "Error: BaseX good server not reachable on $HOST:$BASEX_GOOD_PORT" >&2
 		exit 3
+	elif [[ ! -f "${LIB_DIR}/basex-${GOOD_VERSION}.jar" ]]; then
+		echo "Error: BaseX .jar file not found: ${LIB_DIR}/basex-${GOOD_VERSION}.jar" >&2
+		exit 4
 	fi
 
 	exit 1

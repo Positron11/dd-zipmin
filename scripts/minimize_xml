@@ -16,6 +16,7 @@ import os
 EXIT_MESSAGES = {
     2: "Invalid option or bad arguments",
     3: "BaseX server not reachable",
+    4: "BaseX .jar file not found",
 }
 
 
