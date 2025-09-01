@@ -1,0 +1,1 @@
+declare namespace m ="QyrG";declare namespace DnpiK ="QyrG";declare namespace W ="ZlD";declare namespace zt ="QyrG";//*[boolean(sum(count(head(. ! (avg(position()),.)))) ! (count(.) + 1262593956)) and boolean(.//*/following::*)]//*
