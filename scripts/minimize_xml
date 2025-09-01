@@ -10,6 +10,13 @@ import importlib
 import sys
 import tempfile
 import shutil
+import os
+
+
+EXIT_MESSAGES = {
+    2: "Invalid option or bad arguments",
+    3: "BaseX server not reachable",
+}
 
 
 def build_oracle(base:Path, input_name:str, script_name:str, good_port:int, timeout:float|None):
@@ -55,6 +62,12 @@ def build_oracle(base:Path, input_name:str, script_name:str, good_port:int, time
 		except subprocess.TimeoutExpired:
 			cache[candidate] = False
 			return False
+
+		# handle breaking errors
+		if proc.returncode > 1: 
+			print(f"Fatal Error ({proc.returncode}): {EXIT_MESSAGES.get(proc.returncode, 'Unknown')}")
+
+			raise SystemExit(proc.returncode)
 
 		# ok if desired error (retcode=0)
 		ok = proc.returncode == 0
