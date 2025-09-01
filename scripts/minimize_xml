@@ -20,7 +20,7 @@ EXIT_MESSAGES = {
 }
 
 
-def build_oracle(base:Path, input_name:str, script_name:str, good_port:int, timeout:float|None):
+def build_oracle(base:Path, input_name:str, script_name:str, good_port:str|None, timeout:float|None):
 	"""Generate XML oracle callable for debugger."""
 
 	xml_path    = base / input_name
@@ -49,7 +49,7 @@ def build_oracle(base:Path, input_name:str, script_name:str, good_port:int, time
 		try:
 			# pass good port to r.sh
 			cmd = ["bash", str(script_path)]
-			if good_port: cmd += ["--good-port", good_port]
+			if good_port: cmd += ["--good-port", str(good_port)]
 			
 			proc = subprocess.run(cmd,
 				cwd    =str(base),
@@ -108,8 +108,8 @@ def main(verbose=False):
 
 	p.add_argument(
 		"--good-port",
-		default="1984",
-		help="Port on which good BaseXServer is running (default: 1984)",
+		default=os.environ.get("BASEX_GOOD_PORT", "1984"),
+		help="Port on which good BaseXServer is running (env BASEX_GOOD_PORT overrides; default: 1984)",
 	)
 	
 	p.add_argument(
