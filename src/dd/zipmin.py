@@ -44,7 +44,7 @@ def minimize(target:str, oracle:Callable, stats:bool=False, verbose:bool=False) 
 	
 	# alternate between deficit-guided last char trimming and complement sweep
 	while partlen and target:
-		if verbose: print(f"[{datetime.now().strftime("%H:%M:%S")}]  {len(target):.2E}  {partlen}")
+		if verbose: print(f"[{datetime.now().strftime("%H:%M:%S")}]  {len(pre + target + post):.2E}  {partlen}")
 
 		if c_iteralt % 2: 
 			for i in range(deficit):
