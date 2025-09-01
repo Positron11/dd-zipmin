@@ -135,6 +135,12 @@ def main(verbose=False):
 		default="input.min.xml",
 		help="Output filename for minimized result (default: input.min.xml)",
 	)
+
+	p.add_argument(
+		"--verbose",
+		action="store_true",
+		help="Print minimizer logs",
+	)
 	
 	args = p.parse_args()
 
@@ -196,7 +202,7 @@ def main(verbose=False):
 			target =original, 
 			oracle =oracle,
 			stats  =True,
-			verbose=verbose
+			verbose=args.verbose
 		)
 
 		out_path = base_path / args.output
@@ -232,4 +238,4 @@ def main(verbose=False):
 	
 
 if __name__ == "__main__":
-	main(verbose=True)
+	main()
