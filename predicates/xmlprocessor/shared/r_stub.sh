@@ -2,18 +2,19 @@
 set -Eeuo pipefail
 
 print_usage() {
-  printf >&2 "Usage: $(basename $0) [--good-port PORT] [-h|--help]
+  printf >&2 "Usage: $(basename $0) [--good-port PORT] [--input NAME] [-h|--help]
 
 Options:
   --good-port PORT   Port to start on (default: 1984)
-  -h, --help          Show this help and exit"
+  --input NAME       Input filename (basename only) to use (default: input.xml)
+  -h, --help         Show this help and exit"
 }
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd)"
 TEMPLATE="${SCRIPT_DIR}/../shared/r_base.sh"
 
-# basex good port (default to 1984)
 BASEX_GOOD_PORT=1984
+INPUT_NAME=input.xml
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -25,7 +26,15 @@ while [[ $# -gt 0 ]]; do
 				exit 2
 	  		fi ;;
 	
-		-h|--help) print_usage ; exit 0 ;;
+		--input)
+			if [[ -n "${2:-}" && "${2#*/}" == "$2" && ! "$2" =~ ^- ]]; then
+				INPUT_NAME="$2"; shift 2
+			else
+				echo "Error: --input requires a basename (no path)" >&2
+				exit 2
+			fi ;;
+		
+		 -h|--help) print_usage ; exit 0 ;;
 		
 		*)
 			echo "Unknown option: $1" >&2
@@ -44,5 +53,5 @@ fi
 
 export GOOD_VERSION BAD_VERSION
 
-# Forward the optional good-port argument (or env) to the template.
-exec bash "$TEMPLATE" "$SCRIPT_DIR" "$BASEX_GOOD_PORT"
+# Forward the optional good-port and input filename to the template.
+exec bash "$TEMPLATE" "$SCRIPT_DIR" "$BASEX_GOOD_PORT" "$INPUT_NAME"

@@ -51,6 +51,9 @@ def build_oracle(base:Path, input_name:str, script_name:str, good_port:str|None,
 			cmd = ["bash", str(script_path)]
 			if good_port: cmd += ["--good-port", str(good_port)]
 			
+			# forward input file name to predicate template
+			cmd += ["--input", input_name]
+			
 			proc = subprocess.run(cmd,
 				cwd    =str(base),
 				stdout =subprocess.DEVNULL,
