@@ -13,7 +13,7 @@ import os
 from utils.build_oracle import build_oracle
 
 
-def main(verbose=False):
+def main():
 	p = argparse.ArgumentParser(description=__doc__)
 	
 	p.add_argument(
@@ -144,10 +144,11 @@ def main(verbose=False):
 		out_path.write_text(minimized, encoding="utf-8")
 
 		# success log
-		if verbose:
-			print(f"\nMinimized length: {len(minimized)}")
-			print(f"Oracle invocations: {n_oracle_calls}")
-			print(f"Wrote: {out_path}")
+		if args.verbose:
+			print("\nSummary:")
+			print(f" - Minimized length: {len(minimized)}")
+			print(f" - Oracle invocations: {n_oracle_calls}")
+			print(f" - Wrote: {out_path}")
 
 	# handle keyboard interrupts
 	except KeyboardInterrupt:
