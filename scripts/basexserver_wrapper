@@ -5,7 +5,8 @@ print_usage() {
 	printf >&2 "Usage: basexserver_wrapper [-h|--help] -- <subcommand> [args...]
 
 Options:
-	-h, --help         Show this help and exit
+	-h, --help                Show this help and exit
+	-v, --verbose[=BOOL]      Verbose logging (true/false). Default: false
 
 Behavior:
 	- Scans the subcommand args for a directory containing v.sh (predicate dir).
@@ -25,14 +26,16 @@ PASS=password
 
 # parse args: only -h/--help allowed before --
 ARGS=("$@")
-VSH_DIR=""
-sep_index=-1
+VERBOSE=0
+SEP_INDEX=-1
 
 for i in "${!ARGS[@]}"; do
 	case "${ARGS[i]}" in
 		-h|--help) print_usage; exit 0 ;;
+
+		--verbose) VERBOSE=1; continue ;;
 		
-		--) sep_index=$i; break ;;
+		--) SEP_INDEX=$i; break ;;
 		
 		*)
 			echo "Unknown option: $1" >&2
@@ -42,16 +45,18 @@ for i in "${!ARGS[@]}"; do
 done
 
 # validate separator + subcommand
-if (( sep_index < 0 )); then
+if (( SEP_INDEX < 0 )); then
 	echo "Missing '--' separator between wrapper and subcommand" >&2
 	print_usage; exit 2
-elif (( sep_index == ${#ARGS[@]}-1 )); then
+elif (( SEP_INDEX == ${#ARGS[@]}-1 )); then
 	echo "Missing subcommand after '--'" >&2
 	print_usage; exit 2
 fi
 
 # everything after "--" = subcommand args
-SUBCMD_ARGS=("${ARGS[@]:sep_index+1}")
+SUBCMD_ARGS=("${ARGS[@]:SEP_INDEX+1}")
+
+VSH_DIR=""
 
 # scan backward for predicate dir with v.sh
 for (( i=${#SUBCMD_ARGS[@]}-1; i>=0; i-- )); do
@@ -135,9 +140,11 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-echo "Starting BaseX servers for $VSH_DIR/v.sh"
-echo " - good: $JAR_GOOD : $HOST:$GOOD_PORT"
-echo " - bad:  $JAR_BAD : $HOST:$BAD_PORT"
+if [[ "$VERBOSE" == "1" ]]; then
+	echo "Starting BaseX servers for $VSH_DIR/v.sh"
+	echo " - good: $JAR_GOOD : $HOST:$GOOD_PORT"
+	echo " - bad:  $JAR_BAD : $HOST:$BAD_PORT"
+fi
 
 # start servers
 java -cp "$JAR_BAD"  org.basex.BaseXServer -n "$HOST" -p "$BAD_PORT"  -c "PASSWORD $PASS" > /dev/null 2>&1 & bad_pid=$!
@@ -147,7 +154,7 @@ java -cp "$JAR_GOOD" org.basex.BaseXServer -n "$HOST" -p "$GOOD_PORT" -c "PASSWO
 wait_for_port "$HOST" "$BAD_PORT" 25
 wait_for_port "$HOST" "$GOOD_PORT" 25
 
-echo -e "\n--- subcommand:\n"
+[[ "$VERBOSE" == "1" ]] && { echo -e "\n--- subcommand:\n"; }
 
 # run subcommand exactly as provided, appending --good-port properly
 "${SUBCMD_ARGS[@]}" --good-port "$GOOD_PORT"
