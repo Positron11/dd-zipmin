@@ -6,11 +6,10 @@ from pathlib import Path
 import argparse
 import importlib
 import sys
-import tempfile
-import shutil
 import os
 
 from utils.oracle import build_oracle
+from utils.ramdisk import RamDir, RamdiskUnavailable
 
 
 def main():
@@ -61,6 +60,7 @@ def main():
 
 	p.add_argument(
 		"--ram-root",
+		type=Path,
 		default="/dev/shm",
 		help="Root directory of tmpfs to use with --ramdisk (default: /dev/shm)",
 	)
@@ -87,30 +87,23 @@ def main():
 	if not xml_path.exists(): p.error(f"Input file not found: {xml_path}")
 	if not (base_path / args.script).exists(): p.error(f"Oracle script not found: {base_path / args.script}")
 
-	run_base   = base_path
-	tmp_parent = None
+	run_base = base_path
+	ramdir   = None
 	
 	# optimization: run from a RAM-disk copy under /dev/shm
 	if args.ramdisk:
-		ram_root = Path(args.ram_root)
-	
-		# cannot resolve RAM-disk path
-		if not ram_root.exists() or not ram_root.is_dir():
-			print(f"Warning: ram-root {ram_root} not available; running in-place", file=sys.stderr)
-	
-		else:
-			tmp_parent = tempfile.mkdtemp(prefix="minxml-", dir=str(ram_root))
-			run_base   = Path(tmp_parent) / base_path.name
-			
-			# copy predicate to RAM-disk
-			shutil.copytree(base_path, run_base)
-	
-			# copy shared resources
-			for dir in ["lib", "shared"]:
-				dir_path = base_path.parent / dir
-				ram_dir  = Path(tmp_parent) / dir
-			
-				shutil.copytree(dir_path, ram_dir)
+		try: 
+			ramdir = RamDir("minxml", args.ram_root)
+
+			ramdir.copy([
+				(base_path, base_path.name), 
+				(base_path.parent / "lib", "lib"), 
+				(base_path.parent / "shared", "shared")
+			])
+
+			run_base = ramdir.ram_dir / base_path.name
+		
+		except RamdiskUnavailable as e: print(f"Warning: {e}; running in-place", file=sys.stderr)
 
 	# read input.xml to string
 	original = xml_path.read_text(encoding="utf-8")
@@ -164,13 +157,11 @@ def main():
 			xml_path.write_text(original, encoding="utf-8")
 
 		# cleanup RAM-disk copy if used
-		if tmp_parent is not None:
-			if args.verbose: print(f" - Clearing RAM disk ({tmp_parent})...")
-			
-			try: shutil.rmtree(tmp_parent)
-			except Exception as e: print(f"Warning: failed to clean ramdisk dir: {e}", file=sys.stderr)
+		if ramdir is not None:
+			if args.verbose: print(f" - Clearing RAM disk ({ramdir})...")
+			ramdir.clean()
 
-		print(" - Done.")
+		if args.verbose: print(" - Done.")
 	
 
 if __name__ == "__main__":
