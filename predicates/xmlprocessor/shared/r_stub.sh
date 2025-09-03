@@ -6,7 +6,7 @@ print_usage() {
 
 Options:
   --good-port PORT   Port to start on (default: 1984)
-  --input NAME       Input filename (basename only) to use (default: input.xml)
+  --input NAME       Input filename or relative path to use (default: input.xml)
   -h, --help         Show this help and exit"
 }
 
@@ -27,10 +27,10 @@ while [[ $# -gt 0 ]]; do
 	  		fi ;;
 	
 		--input)
-			if [[ -n "${2:-}" && "${2#*/}" == "$2" && ! "$2" =~ ^- ]]; then
+			if [[ -n "${2:-}" && "$2" != /* && ! $2 =~ ^- ]]; then
 				INPUT_NAME="$2"; shift 2
 			else
-				echo "Error: --input requires a basename (no path)" >&2
+				echo "Error: --input requires a relative path" >&2
 				exit 2
 			fi ;;
 		
