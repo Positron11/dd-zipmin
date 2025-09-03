@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Tuple
 from defusedxml import ElementTree as ET
 
-from utils.build_oracle import build_oracle
+from utils.oracle import build_oracle
 
 
 @dataclass

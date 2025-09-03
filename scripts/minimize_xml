@@ -10,7 +10,7 @@ import tempfile
 import shutil
 import os
 
-from utils.build_oracle import build_oracle
+from utils.oracle import build_oracle
 
 
 def main():
