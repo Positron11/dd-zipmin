@@ -152,20 +152,20 @@ def main():
 
 	# handle keyboard interrupts
 	except KeyboardInterrupt:
-		print("\n\nInterrupted by user (130)", file=sys.stderr)
+		if args.verbose: print("\n\nInterrupted by user (130)", file=sys.stderr)
 		sys.exit(130)
 
 	finally:
-		print("\nCleaning up...")
+		if args.verbose: print("\nCleaning up...")
 		
 		# restore original input.xml content
 		if not args.ramdisk: 
-			print(f" - Restoring original input ({xml_path})...")
+			if args.verbose: print(f" - Restoring original input ({xml_path})...")
 			xml_path.write_text(original, encoding="utf-8")
 
 		# cleanup RAM-disk copy if used
 		if tmp_parent is not None:
-			print(f" - Clearing RAM disk ({tmp_parent})...")
+			if args.verbose: print(f" - Clearing RAM disk ({tmp_parent})...")
 			
 			try: shutil.rmtree(tmp_parent)
 			except Exception as e: print(f"Warning: failed to clean ramdisk dir: {e}", file=sys.stderr)
