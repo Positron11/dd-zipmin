@@ -10,7 +10,7 @@ name = "tailprobe-dd"
 version = "0.1.0"
 description = "Tail-probe Delta Debugging utilities"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 authors = [
 	{ name = "Aarush Kumbhakern" },
 ]
