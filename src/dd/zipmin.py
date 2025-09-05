@@ -6,13 +6,17 @@ from datetime import datetime
 def remove_last_char(pre:str, target:str, post:str, oracle:Callable) -> tuple[str, str, str]:
 	"""Add last char to postlude if needed."""
 
-	if oracle(pre + target[:-1] + post): return pre, target[:-1], post
-	else: return pre, target[:-1], target[-1] + post
+	interesting, wellformed = oracle(pre + target[:-1] + post)
+
+	if interesting: return pre, target[:-1], post, wellformed
+	else: return pre, target[:-1], target[-1] + post, wellformed
 
 
 def complement_sweep(pre:str, target:str, post:str, partlen:int, oracle:Callable) -> tuple[str, int]:
 	"""Identify benign chunks of target with variable granularity."""
 	
+	n_good_oracalls = 0
+
 	reduced = ""
 	
 	# test contiguous chunks of size partlen for interestingness
@@ -20,12 +24,16 @@ def complement_sweep(pre:str, target:str, post:str, partlen:int, oracle:Callable
 		removed   = target[i:i+partlen]
 		remaining = target[i+partlen:]
 		
-		if not oracle(pre + reduced + remaining + post): reduced += removed
+		interesting, wellformed = oracle(pre + reduced + remaining + post)
+
+		if wellformed: n_good_oracalls += 1
+
+		if not interesting: reduced += removed
 	
 	n_oracalls = ceil(len(target) / partlen)
 	deficit    = max(n_oracalls - (len(target) - len(reduced)), 0)
 	
-	return reduced, deficit
+	return reduced, deficit, n_good_oracalls
 
 
 def minimize(target:str, oracle:Callable, stats:bool=False, verbose:bool=False) -> tuple[str, int]|str:
@@ -37,6 +45,7 @@ def minimize(target:str, oracle:Callable, stats:bool=False, verbose:bool=False) 
 	c_iteralt  = 0
 	deficit    = 0
 	n_oracalls = 0
+	n_good_oracalls = 0
 	
 	# pre and post-ludes
 	pre  = ""
@@ -48,15 +57,19 @@ def minimize(target:str, oracle:Callable, stats:bool=False, verbose:bool=False) 
 
 		if c_iteralt % 2: 
 			for i in range(deficit):
-				pre, target, post = remove_last_char(pre, target, post, oracle)
+				pre, target, post, wellformed = remove_last_char(pre, target, post, oracle)
+
+				if stats and wellformed: n_good_oracalls += 1
 
 			if stats: n_oracalls += deficit
 			  
 			deficit = 0
 		
 		else:
-			reduced, deficit = complement_sweep(pre, target, post, partlen, oracle)
+			reduced, deficit, n_sweep_good_oracalls = complement_sweep(pre, target, post, partlen, oracle)
+			
 			if stats: n_oracalls += ceil(len(target) / partlen)
+			if stats: n_good_oracalls += n_sweep_good_oracalls
 	
 			if reduced == target: partlen //= 2
 		
@@ -64,4 +77,4 @@ def minimize(target:str, oracle:Callable, stats:bool=False, verbose:bool=False) 
 		
 		c_iteralt += 1
 	
-	return (pre + target + post, n_oracalls) if stats else pre + target + post
+	return (pre + target + post, n_oracalls, n_good_oracalls) if stats else pre + target + post

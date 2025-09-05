@@ -25,10 +25,10 @@ def build_oracle(
 	xml_path    = base / input_name
 	script_path = base / script_name
 
-	def oracle(candidate:str) -> bool:
+	def oracle(candidate:str) -> tuple[bool, bool]:
 		# fast well-formedness pre-check
 		try: ET.fromstring(candidate)
-		except Exception: return False
+		except Exception: return False, False
 
 		tmp_path = xml_path.with_suffix(xml_path.suffix + ".tmp")
 		
@@ -53,7 +53,7 @@ def build_oracle(
 			)
 
 		# false on timeout
-		except subprocess.TimeoutExpired: return False
+		except subprocess.TimeoutExpired: return False, True
 
 		# handle breaking errors
 		if proc.returncode > 1: 
@@ -64,6 +64,6 @@ def build_oracle(
 		# ok if desired error (retcode=0)
 		ok = proc.returncode == 0
 		
-		return ok
+		return ok, True
 
 	return oracle
