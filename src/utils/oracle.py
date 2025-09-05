@@ -1,9 +1,10 @@
-from typing import Callable
 from pathlib import Path
+from typing import Callable, Optional
 from defusedxml import ElementTree as ET
 import subprocess
 
 
+# shell script custom exit code to message map
 EXIT_MESSAGES = {
 	2: "Invalid option or bad arguments",
 	3: "BaseX server not reachable",
@@ -15,42 +16,57 @@ def build_oracle(
 	base:Path, 
 	input_name:str, 
 	script_name:str, 
-	good_port:str|None, 
-	timeout:float|None) -> Callable:
+	good_port:Optional[str]=None, 
+	timeout:Optional[float]=None) -> Callable:
 	
-	"""Generate XML oracle callable for debugger."""
+	"""
+	Generate XML oracle callable for debugger.
+	
+	:param base: path to predicate directory.
+	:param input_name: relative (to base) path to input.
+	:param script_name: relative (to base) path to oracle shell script.
+	:param good_port: port on which "good" BaseX server is running.
+	:param timeout: subprocess timeout value.
+	:returns: oracle function.
+	"""
 
 	xml_path    = base / input_name
 	script_path = base / script_name
 
 	def oracle(candidate:str) -> tuple[bool, bool]:
-		# fast well-formedness pre-check
+		"""
+		Perform pre-check(s) and invoke oracle on candidate string.
+
+		:param candidate: input string.
+		:returns: tuple of (is interesting, is well formed) booleans.
+		"""
+		
+		# (optimization) fail fast early: well-formedness pre-check
 		try: ET.fromstring(candidate)
 		except Exception: return False, False
 
-		tmp_path = xml_path.with_suffix(xml_path.suffix + ".tmp")
-		
 		# write candidate to file and atomically replace
+		tmp_path = xml_path.with_suffix(xml_path.suffix + ".tmp")
 		tmp_path.write_text(candidate, encoding="utf-8")
 		tmp_path.replace(xml_path)
 		
 		try:
-			# pass good port to r.sh
 			cmd = ["bash", str(script_path)]
+			
+			# pass good port
 			if good_port: cmd += ["--good-port", str(good_port)]
 			
-			# forward input file name to predicate template
+			# forward input file name
 			cmd += ["--input", input_name]
 			
 			proc = subprocess.run(cmd,
-				cwd    =str(base),
+				cwd    =base,
 				stdout =subprocess.DEVNULL,
 				stderr =subprocess.DEVNULL,
 				timeout=timeout,
-				check  =False
 			)
 
-		# false on timeout
+		# fail on timeout
 		except subprocess.TimeoutExpired: return False, True
 
 		# handle breaking errors
@@ -59,9 +75,7 @@ def build_oracle(
 
 			raise SystemExit(proc.returncode)
 
-		# ok if desired error (retcode=0)
-		ok = proc.returncode == 0
-		
-		return ok, True
+		# "interesting" if desired error (retcode=0)
+		return proc.returncode == 0, True
 
 	return oracle

@@ -1,9 +1,10 @@
 from pathlib import Path
 import tempfile
 import shutil
+import sys
 
 
-class RamdiskUnavailable(RuntimeError):
+class RamDiskUnavailable(RuntimeError):
 	def __init__(self, ram_root:Path):
 		self.ram_root = ram_root
 
@@ -11,27 +12,34 @@ class RamdiskUnavailable(RuntimeError):
 
 
 class RamDir():
-	def __init__(self, prefix:str, ram_root:Path=Path("/dev/shm")):
-		# cannot resolve RAM-disk path
-		if not ram_root.exists() or not ram_root.is_dir(): raise RamdiskUnavailable(ram_root)
+	"""RAM-disk temp. directory manager."""
+
+	def __init__(self, prefix:str, root:Path=Path("/dev/shm")):
+		if not root.exists() or not root.is_dir(): raise RamDiskUnavailable(root)
 		
 		self.prefix   = prefix
-		self.ram_root = ram_root
-		self.ram_dir  = Path(tempfile.mkdtemp(prefix=f"{self.prefix}-", dir=str(self.ram_root)))
+		self.root = root
+		self.path  = Path(tempfile.mkdtemp(prefix=f"{self.prefix}-", dir=self.root))
 
 
 	def __str__(self):
-		return str(self.ram_dir)
+		return str(self.path)
 
 
 	def copy(self, dir_map:list[tuple[Path, str]]) -> None:
-		"""Copy directories to RAM-disk directory."""
+		"""
+		Copy file trees to RAM-disk directory.
+		
+		:param dir_map: map of source -> destination paths.
+		"""
 
 		# copy directories
 		for (source, dest) in dir_map:
-			shutil.copytree(source, self.ram_dir / dest)
+			shutil.copytree(source, self.path / dest)
 
 
 	def clean(self) -> None:
-		try: shutil.rmtree(self.ram_dir)
+		"""Remove directory from RAM-disk."""
+
+		try: shutil.rmtree(self.path)
 		except Exception as e: print(f"Warning: failed to clean ramdisk dir: {e}", file=sys.stderr)

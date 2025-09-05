@@ -7,7 +7,7 @@ import sys
 import os
 
 from utils.oracle import build_oracle
-from utils.ramdisk import RamDir, RamdiskUnavailable
+from utils.ramdisk import RamDir, RamDiskUnavailable
 
 
 def main():
@@ -99,9 +99,9 @@ def main():
 				(base_path.parent / "shared", "shared")
 			])
 
-			run_base = ramdir.ram_dir / base_path.name
+			run_base = ramdir.path / base_path.name
 		
-		except RamdiskUnavailable as e: print(f"Warning: {e}; running in-place", file=sys.stderr)
+		except RamDiskUnavailable as e: print(f"Warning: {e}; running in-place", file=sys.stderr)
 
 	# read input.xml to string
 	original = xml_path.read_text(encoding="utf-8")

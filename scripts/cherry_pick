@@ -10,7 +10,7 @@ from typing import Callable, Dict, List, Tuple
 from defusedxml import ElementTree as ET
 
 from utils.oracle import build_oracle
-from utils.ramdisk import RamDir, RamdiskUnavailable
+from utils.ramdisk import RamDir, RamDiskUnavailable
 
 
 @dataclass
@@ -416,7 +416,7 @@ def main():
 
 			run_base = ramdir.ram_dir / base_path.name
 		
-		except RamdiskUnavailable as e: print(f"Warning: {e}; running in-place", file=sys.stderr)
+		except RamDiskUnavailable as e: print(f"Warning: {e}; running in-place", file=sys.stderr)
 
 	# read input.xml to string
 	original = xml_path.read_text(encoding="utf-8")
