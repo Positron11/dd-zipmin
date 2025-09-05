@@ -24,20 +24,11 @@ def build_oracle(
 
 	xml_path    = base / input_name
 	script_path = base / script_name
-	
-	cache: dict[str, bool] = {}
 
 	def oracle(candidate:str) -> bool:
-		# memoize repeated candidates across iterations
-		hit = cache.get(candidate)
-		if hit is not None: return hit
-
 		# fast well-formedness pre-check
 		try: ET.fromstring(candidate)
-		
-		except Exception: 
-			cache[candidate] = False
-			return False
+		except Exception: return False
 
 		tmp_path = xml_path.with_suffix(xml_path.suffix + ".tmp")
 		
@@ -62,9 +53,7 @@ def build_oracle(
 			)
 
 		# false on timeout
-		except subprocess.TimeoutExpired:
-			cache[candidate] = False
-			return False
+		except subprocess.TimeoutExpired: return False
 
 		# handle breaking errors
 		if proc.returncode > 1: 
@@ -75,7 +64,6 @@ def build_oracle(
 		# ok if desired error (retcode=0)
 		ok = proc.returncode == 0
 		
-		cache[candidate] = ok
 		return ok
 
 	return oracle
