@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Callable, Optional
-from defusedxml import ElementTree as ET
+from lxml import etree as ET
 import subprocess
 
 
@@ -10,6 +10,17 @@ EXIT_MESSAGES = {
 	3: "BaseX server not reachable",
 	4: "BaseX .jar file not found",
 }
+
+
+# safe XML parser
+SAFE_PARSER = ET.XMLParser(
+	resolve_entities=False, 
+	load_dtd        =False, 
+	no_network      =True, 
+	dtd_validation  =False, 
+	recover         =False, 
+	huge_tree       =False
+)
 
 
 def build_oracle(
@@ -42,7 +53,7 @@ def build_oracle(
 		"""
 		
 		# (optimization) fail fast early: well-formedness pre-check
-		try: ET.fromstring(candidate)
+		try: ET.fromstring(candidate, parser=SAFE_PARSER)
 		except Exception: return False, False
 
 		# write candidate to file and atomically replace
